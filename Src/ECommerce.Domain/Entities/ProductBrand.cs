@@ -1,26 +1,32 @@
+﻿using ECommerce.Domain.Errors;
+using ECommerce.Domain.Shared;
+
 namespace ECommerce.Domain.Entities;
 
- public class ProductBrand : BaseEntity
- {
+public class ProductBrand : BaseEntity
+{
     public string Name { get; private set; } = null!;
 
     public ICollection<Product> Products { get; private set; } = [];
 
-    private ProductBrand() { }
-
-    public static ProductBrand Create(string name)
+    private ProductBrand()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        return new ProductBrand
+    }
+
+    public static Result<ProductBrand> Create(Guid id, string name)
+    {
+        if (id == Guid.Empty)
+            return Result<ProductBrand>.Failure(ProductBrandErrors.InvalidId);
+
+        if (string.IsNullOrWhiteSpace(name))
+            return Result<ProductBrand>.Failure(ProductBrandErrors.InvalidName);
+
+        var productBrand = new ProductBrand
         {
-            Name = name
+            Id = id,
+            Name = name.Trim()
         };
-    }
 
-    public void Update(string name)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        Name = name;
+        return Result<ProductBrand>.Success(productBrand);
     }
-
 }
