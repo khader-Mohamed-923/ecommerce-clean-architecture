@@ -42,6 +42,7 @@ public class SeederCoordinator(
         BrandSeeder => 1,
         TypeSeeder => 2,
         ProductSeeder => 3,
+        DeliveryMethodSeeder => 4,
         _ => 99
     };
 }
