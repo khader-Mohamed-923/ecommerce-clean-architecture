@@ -1,23 +1,18 @@
-﻿using ECommerce.API.Common.Responses;
-using ECommerce.Application.Common.Results;
-using Microsoft.AspNetCore.Mvc;
+using ECommerce.Domain.Shared;
 
 namespace ECommerce.API.Extensions;
 
 public static class ResultExtensions
 {
-    public static ActionResult<ApiResponse<T>> ToActionResult<T>(this Result<T> result)
-    {
-        var response=ApiResponse<T>.FromResult(result);
-
-        if (response.Success)
-            return new OkObjectResult(response);
-
-
-        return new ObjectResult(response)
+    public static int ToStatusCode(this Error error) =>
+        error.Type switch
         {
-            StatusCode = response.Error!.StatusCode
+            ErrorType.Validation => StatusCodes.Status400BadRequest,
+            ErrorType.NotFound => StatusCodes.Status404NotFound,
+            ErrorType.Conflict => StatusCodes.Status409Conflict,
+            ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+            ErrorType.Forbidden => StatusCodes.Status403Forbidden,
+            ErrorType.Failure => StatusCodes.Status500InternalServerError,
+            _ => StatusCodes.Status500InternalServerError
         };
-
-    }
 }

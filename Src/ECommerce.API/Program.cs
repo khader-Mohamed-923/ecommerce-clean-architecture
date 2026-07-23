@@ -1,33 +1,81 @@
 using ECommerce.API;
-using ECommerce.Application;
 using ECommerce.Infrastructure;
+using ECommerce.Infrastructure.Persistence.DbContexts;
 using ECommerce.Infrastructure.Persistence.Seeders;
-using Microsoft.Extensions.FileProviders;
+using ECommerce.Application;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddApi();
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
-
-var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
+try
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<SeederCoordinator>();
-    await seeder.SeedAsync();
-}
+    // serliog + seq
+    var builder = WebApplication.CreateBuilder(args);
 
-if (app.Environment.IsDevelopment())
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+
+    builder.Services.AddOutputCache(options =>
+    {
+        options.AddPolicy("Products", policy =>
+        {
+            policy.Expire(TimeSpan.FromMinutes(1))
+            .SetVaryByQuery("pagesize", "pageNumber");
+        });
+    });
+
+    builder.Services.AddPresentation();
+
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+    builder.Services.AddApplication();
+
+    var app = builder.Build();
+
+    app.UseSerilogRequestLogging();
+
+    app.UseExceptionHandler();
+
+    app.UseOutputCache();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+
+        app.UseSwaggerUI(options =>
+        {
+            foreach (var description in app.DescribeApiVersions())
+            {
+                options.SwaggerEndpoint(
+                    $"/swagger/{description.GroupName}/swagger.json",
+                    description.GroupName.ToUpperInvariant());
+            }
+        });
+
+        await using var scope = app.Services.CreateAsyncScope();
+
+        var dbSeed = scope.ServiceProvider.GetRequiredService<SeederCoordinator>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<StoreDbContext>();
+
+        await dbContext.Database.MigrateAsync();
+
+        await dbSeed.SeedAsync();
+    }
+
+    app.MapControllers();
+
+    await app.RunAsync();
+}
+catch (Exception ex)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Fatal(ex, "Application terminated unexpectedly");
 }
-
-
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
+finally
+{
+    await Log.CloseAndFlushAsync();
+}

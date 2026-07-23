@@ -1,25 +1,18 @@
-﻿using ECommerce.Application.Features.Products.Mappings;
-using Mapster;
-using MapsterMapper;
+using ECommerce.Application.Messaging;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace ECommerce.Application;
 
 public static class DependencyInjection
 {
-
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        var assembly = Assembly.GetExecutingAssembly();
 
-        var config=TypeAdapterConfig.GlobalSettings;
-
-        config.Scan(typeof(DependencyInjection).Assembly);
-
-        services.AddSingleton(config);
-
-        services.AddScoped<IMapper, ServiceMapper>();
-
+        services.AddMessaging(assembly);
+        services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
 
         return services;
     }

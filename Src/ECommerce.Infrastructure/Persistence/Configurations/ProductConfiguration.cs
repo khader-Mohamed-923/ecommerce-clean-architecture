@@ -4,33 +4,38 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ECommerce.Infrastructure.Persistence.Configurations;
 
-public class ProductConfiguration : BaseEntityConfiguration<Product>
+public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
-    public override void Configure(EntityTypeBuilder<Product> builder)
+    public void Configure(EntityTypeBuilder<Product> builder)
     {
-        base.Configure(builder);
+        BaseEntityConfiguration.Configure(builder);
 
-    
         builder.Property(x => x.Name)
-            .HasMaxLength(200);
+            .IsRequired()
+            .HasMaxLength(Product.MaxNameLength);
 
-        builder.Property(x => x.Description)    
-            .HasMaxLength(1000);
+        builder.Property(x => x.Description)
+            .IsRequired()
+            .HasMaxLength(Product.MaxDescriptionLength);
+
+        builder.Property(x => x.PictureUrl)
+            .IsRequired()
+            .HasMaxLength(Product.MaxPictureUrlLength);
 
         builder.Property(x => x.Price)
-            .HasColumnType("decimal(18,2)");
+            .HasPrecision(18, 2);
 
-        builder.Property(x => x.ImageUrl)
-            .HasMaxLength(500);
+        builder.HasOne(x => x.ProductBrand)
+            .WithMany(pb => pb.Products)
+            .HasForeignKey(x => x.ProductBrandId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(x => x.ProductType)
-            .WithMany(x => x.Products)
+            .WithMany(pt => pt.Products)
             .HasForeignKey(x => x.ProductTypeId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(x => x.Brand)
-            .WithMany(x => x.Products)
-            .HasForeignKey(x => x.BrandId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.Price);
     }
 }

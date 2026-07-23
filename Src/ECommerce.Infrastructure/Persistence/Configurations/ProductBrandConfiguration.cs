@@ -1,14 +1,23 @@
-using ECommerce.Domain.Entities;
+﻿using ECommerce.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ECommerce.Infrastructure.Persistence.Configurations;
-
-public class ProductBrandConfiguration : BaseEntityConfiguration<ProductBrand>
+namespace ECommerce.Infrastructure.Persistence.Configurations
 {
-    public override void Configure(EntityTypeBuilder<ProductBrand> builder)
+    public sealed class ProductBrandConfiguration
+    : IEntityTypeConfiguration<ProductBrand>
     {
-        base.Configure(builder);
-        builder.Property(x => x.Name)
-            .HasMaxLength(200);
+        public void Configure(
+            EntityTypeBuilder<ProductBrand> builder)
+        {
+            BaseEntityConfiguration.Configure(builder);
+
+            builder.Property(x => x.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.HasIndex(x => x.Name)
+                .IsUnique();
+        }
     }
 }

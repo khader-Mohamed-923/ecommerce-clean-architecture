@@ -4,16 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ECommerce.Infrastructure.Persistence.Configurations;
 
-public abstract class BaseEntityConfiguration<T> : IEntityTypeConfiguration<T>
-    where T : BaseEntity
+internal static class BaseEntityConfiguration
 {
-    public virtual void Configure(EntityTypeBuilder<T> builder)
+    public static void Configure<TEntity>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : BaseEntity
     {
-       
-
-        builder.Property(x => x.IsDeleted)
+        builder.Property(entity => entity.IsDeleted)
             .HasDefaultValue(false);
 
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(entity => !entity.IsDeleted);
     }
 }
