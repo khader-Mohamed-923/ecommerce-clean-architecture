@@ -80,6 +80,8 @@ try
 
     app.MapAuthEndpoints(apiVersionSet);
     app.MapUserEndpoints(apiVersionSet);
+    app.MapOrderEndpoints(apiVersionSet);
+    app.MapDeliveryMethodEndpoints(apiVersionSet);
 
     app.MapControllers();
 
