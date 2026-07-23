@@ -14,6 +14,24 @@ public sealed class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provi
         {
             options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
         }
+
+        var securityScheme = new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Description = "JWT Bearer. Example: Bearer {token}",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        };
+
+        options.AddSecurityDefinition("Bearer", securityScheme);
+
+        options.AddSecurityRequirement(document =>
+            new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+            });
     }
 
     private static OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
