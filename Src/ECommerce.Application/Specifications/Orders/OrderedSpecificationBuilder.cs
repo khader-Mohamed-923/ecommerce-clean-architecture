@@ -23,7 +23,6 @@ public sealed class OrderedSpecificationBuilder<T> : SpecificationBuilder<T>,
         return this;
     }
 }
-
 public sealed class OrderedSpecificationBuilder<T, TResult>
     : SpecificationBuilder<T, TResult>, IOrderedSpecificationBuilder<T, TResult>
 {
