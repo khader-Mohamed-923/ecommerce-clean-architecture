@@ -1,4 +1,5 @@
 using ECommerce.API;
+using ECommerce.API.Endpoints;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Persistence.DbContexts;
 using ECommerce.Infrastructure.Persistence.Seeders;
@@ -43,6 +44,9 @@ try
 
     app.UseOutputCache();
 
+    app.UseAuthentication();
+    app.UseAuthorization();
+
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -61,11 +65,21 @@ try
 
         var dbSeed = scope.ServiceProvider.GetRequiredService<SeederCoordinator>();
         var dbContext = scope.ServiceProvider.GetRequiredService<StoreDbContext>();
+        var identityDbContext = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Identity.AppIdentityDbContext>();
 
+        await identityDbContext.Database.MigrateAsync();
         await dbContext.Database.MigrateAsync();
 
         await dbSeed.SeedAsync();
     }
+
+    var apiVersionSet = app.NewApiVersionSet()
+        .HasApiVersion(new Asp.Versioning.ApiVersion(1, 0))
+        .ReportApiVersions()
+        .Build();
+
+    app.MapAuthEndpoints(apiVersionSet);
+    app.MapUserEndpoints(apiVersionSet);
 
     app.MapControllers();
 

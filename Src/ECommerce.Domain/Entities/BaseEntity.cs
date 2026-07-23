@@ -10,5 +10,9 @@ public abstract class BaseEntity
     
     public bool IsDeleted { get; protected set; }
 
-    public void MarkAsDeleted() => IsDeleted = true;
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }
