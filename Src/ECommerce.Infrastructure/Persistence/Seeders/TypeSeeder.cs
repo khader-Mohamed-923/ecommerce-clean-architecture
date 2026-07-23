@@ -1,5 +1,5 @@
-﻿using ECommerce.Domain.Entities;
-using ECommerce.Infrastructure.Data.DbContexts;
+using ECommerce.Domain.Entities;
+using ECommerce.Infrastructure.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -18,20 +18,27 @@ public class TypeSeeder : ISeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await _context.ProductTypes.AnyAsync(cancellationToken))
-            return;
+        var existingTypes = await _context.ProductTypes.Select(t => t.Name).ToListAsync(cancellationToken);
 
-        var types = new List<ProductType>
+        var predefinedTypes = new List<ProductType>
         {
-            ProductType.Create("T-Shirts"),
-            ProductType.Create("Jackets"),
-            ProductType.Create("Pants"),
-            ProductType.Create("Shoes"),
-            ProductType.Create("Dresses"),
-            ProductType.Create("Accessories"),
+            ProductType.Create(Guid.NewGuid(), "T-Shirts").Value,
+            ProductType.Create(Guid.NewGuid(), "Jackets").Value,
+            ProductType.Create(Guid.NewGuid(), "Pants").Value,
+            ProductType.Create(Guid.NewGuid(), "Shoes").Value,
+            ProductType.Create(Guid.NewGuid(), "Dresses").Value,
+            ProductType.Create(Guid.NewGuid(), "Accessories").Value,
         };
 
-        await _context.ProductTypes.AddRangeAsync(types, cancellationToken);
-        _logger.LogInformation("Seeded {Count} types.", types.Count);
+        var typesToInsert = predefinedTypes.Where(t => !existingTypes.Contains(t.Name)).ToList();
+
+        if (typesToInsert.Count == 0)
+        {
+            _logger.LogInformation("Skipping TypeSeeder because all predefined types already exist.");
+            return;
+        }
+
+        await _context.ProductTypes.AddRangeAsync(typesToInsert, cancellationToken);
+        _logger.LogInformation("Seeded {Count} missing types.", typesToInsert.Count);
     }
 }
