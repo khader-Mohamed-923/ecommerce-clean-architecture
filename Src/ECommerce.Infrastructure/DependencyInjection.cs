@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<ISeeder, BrandSeeder>();
         services.AddScoped<ISeeder, TypeSeeder>();
         services.AddScoped<ISeeder, ProductSeeder>();
+        services.AddScoped<ISeeder, DeliveryMethodSeeder>();
         services.AddScoped<SeederCoordinator>();
         
         // Caching
