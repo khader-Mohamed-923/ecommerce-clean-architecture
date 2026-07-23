@@ -15,6 +15,8 @@ public class StoreDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(StoreDbContext).Assembly, 
+            type => type.Namespace == "ECommerce.Infrastructure.Persistence.Configurations");
     }
 }
