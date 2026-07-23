@@ -1,5 +1,5 @@
-﻿using ECommerce.Domain.Entities;
-using ECommerce.Infrastructure.Data.DbContexts;
+using ECommerce.Domain.Entities;
+using ECommerce.Infrastructure.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -18,22 +18,29 @@ public class BrandSeeder : ISeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await _context.ProductBrands.AnyAsync(cancellationToken))
-            return;
+        var existingBrands = await _context.ProductBrands.Select(b => b.Name).ToListAsync(cancellationToken);
 
-        var brands = new List<ProductBrand>
+        var predefinedBrands = new List<ProductBrand>
         {
-            ProductBrand.Create("Nike"),
-            ProductBrand.Create("Zara"),
-            ProductBrand.Create("H&M"),
-            ProductBrand.Create("Levi's"),
-            ProductBrand.Create("Gucci"),
-            ProductBrand.Create("Ralph Lauren"),
-            ProductBrand.Create("Calvin Klein"),
-            ProductBrand.Create("Tommy Hilfiger"),
+            ProductBrand.Create(Guid.NewGuid(), "Nike").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Zara").Value,
+            ProductBrand.Create(Guid.NewGuid(), "H&M").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Levi's").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Gucci").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Ralph Lauren").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Calvin Klein").Value,
+            ProductBrand.Create(Guid.NewGuid(), "Tommy Hilfiger").Value,
         };
 
-        await _context.ProductBrands.AddRangeAsync(brands, cancellationToken);
-        _logger.LogInformation("Seeded {Count} brands.", brands.Count);
+        var brandsToInsert = predefinedBrands.Where(b => !existingBrands.Contains(b.Name)).ToList();
+
+        if (brandsToInsert.Count == 0)
+        {
+            _logger.LogInformation("Skipping BrandSeeder because all predefined brands already exist.");
+            return;
+        }
+
+        await _context.ProductBrands.AddRangeAsync(brandsToInsert, cancellationToken);
+        _logger.LogInformation("Seeded {Count} missing brands.", brandsToInsert.Count);
     }
 }
