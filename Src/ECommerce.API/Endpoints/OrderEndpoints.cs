@@ -6,6 +6,7 @@ using ECommerce.API.Models;
 using ECommerce.Application.Messaging;
 using ECommerce.Application.Orders.Commands.CancelOrder;
 using ECommerce.Application.Orders.Commands.CreateOrder;
+using ECommerce.Application.Orders.Commands.CreateOrderPayment;
 using ECommerce.Application.Orders.Dtos;
 using ECommerce.Application.Orders.Queries.GetMyOrders;
 using ECommerce.Application.Orders.Queries.GetOrderById;
@@ -91,6 +92,22 @@ public static class OrderEndpoints
         .Produces<ApiResponse<OrderResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/pay", async (
+            Guid id,
+            ISender sender,
+            HttpContext httpContext,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(new CreateOrderPaymentCommand(id), ct);
+            return result.FromResult(httpContext, ApiMessages.PaymentIntentCreated);
+        })
+        .WithSummary("Create Stripe PaymentIntent for order (or update amount if one already exists)")
+        .WithDescription("Uses order.Total (server-side). Calls CreatePaymentIntent when none exists; otherwise UpdatePaymentIntent. Returns clientSecret for Stripe.js.")
+        .Produces<ApiResponse<PaymentClientSecretResponse>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict);
 
         return endpoints;
     }

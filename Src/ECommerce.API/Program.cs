@@ -13,7 +13,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    // serliog + seq
+ 
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -82,6 +82,7 @@ try
     app.MapUserEndpoints(apiVersionSet);
     app.MapOrderEndpoints(apiVersionSet);
     app.MapDeliveryMethodEndpoints(apiVersionSet);
+    app.MapPaymentEndpoints(apiVersionSet);
 
     app.MapControllers();
 

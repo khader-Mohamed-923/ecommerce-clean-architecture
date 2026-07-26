@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="FluentEmail.Core" />
     <PackageReference Include="FluentEmail.Smtp" />
+    <PackageReference Include="Stripe.net" />
   </ItemGroup>
 
   <PropertyGroup>
