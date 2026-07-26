@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ECommerce.Infrastructure.Identity;
 using ECommerce.Application.Common.Interfaces;
 using ECommerce.Application.Common.Settings;
+using ECommerce.Infrastructure.Payments;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Infrastructure;
@@ -118,6 +119,9 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, FluentEmailSender>();
 
         services.AddScoped<ISeeder, IdentitySeeder>();
+
+        services.Configure<StripeSettings>(configuration.GetSection(StripeSettings.SectionName));
+        services.AddScoped<IPaymentService, StripePaymentService>();
 
         return services;
     }
